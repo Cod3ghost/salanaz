@@ -198,7 +198,13 @@ yourself, and refuses to run once real payments exist.
 
 ## Updating later
 
-Re-upload the ZIP; WordPress will offer to replace the existing copy.
+**You should not need to upload anything again.** The site checks
+`Cod3ghost/salanaz` for new releases and offers them under
+**Dashboard → Updates**, like any other theme. See [UPDATES.md](UPDATES.md) for
+how to publish one.
+
+Uploading a ZIP by hand still works if you ever need it — WordPress will offer
+to replace the existing copy.
 Deactivating never touches roles, tables or uploads. Deleting the plugin also
 leaves your data alone unless you explicitly set:
 

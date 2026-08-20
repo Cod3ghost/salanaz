@@ -3,8 +3,9 @@
 Instead of zipping folders and uploading them, you tag a release and the site
 offers the update in wp-admin like any other theme.
 
-Your repository is **`Cod3ghost/salanaz`**, and it is **private** — which means
-the site needs a token to read it. That setup is below.
+Your repository is **`Cod3ghost/salanaz`**, and it is **public**, so the site can
+read it without any credentials. The plugin already defaults to that repository —
+there is nothing to configure.
 
 ---
 
@@ -33,7 +34,7 @@ Three things make this work, and all three matter:
 
 ## One-time setup
 
-### 1. Push this repository
+### Push this repository
 
 ```bash
 git push -u origin main
@@ -42,35 +43,31 @@ git push -u origin main
 If GitHub asks for a password, use a **personal access token**, not your account
 password — GitHub stopped accepting passwords over HTTPS in 2021.
 
-### 2. Create a token for the site
+That is the whole setup. The site already points at `Cod3ghost/salanaz` and the
+repository is public, so no token and no settings are needed.
 
-Because the repo is private, the site cannot read releases anonymously.
+To confirm it is working, go to **Salanaz → Settings → Updates** and press
+**Check for updates now**. It reports the latest released version against what
+you are running.
+
+### If you make the repository private later
+
+Updates would stop, because the site could no longer read it. You would then
+need a token:
 
 1. GitHub → **Settings → Developer settings → Personal access tokens →
    Fine-grained tokens → Generate new token**
 2. **Repository access**: *Only select repositories* → `Cod3ghost/salanaz`
 3. **Permissions** → Repository permissions → **Contents: Read-only**
-4. Set an expiry you will actually remember. When it lapses, updates stop
-   silently — the site simply stops seeing new releases.
-
-Nothing else. Read-only access to one repository is all it needs.
-
-### 3. Give the token to the site
-
-Best, because it never touches the database or a backup:
 
 ```php
 // wp-config.php, above the "stop editing" line
-define( 'SALANAZ_GITHUB_REPO',  'Cod3ghost/salanaz' );
 define( 'SALANAZ_GITHUB_TOKEN', 'github_pat_...' );
 ```
 
-Or paste it into **Salanaz → Settings → Updates**. The constant wins if both are
-set.
-
-Then press **Check for updates now**. It will tell you the latest released
-version and what you are running. If the token is wrong or expired, you get a
-plain error rather than silence.
+Put it in `wp-config.php` rather than the settings screen so it stays out of
+database backups. Note that such tokens expire — and when one does, updates stop
+silently.
 
 ---
 
@@ -142,34 +139,38 @@ Nothing is lost, for the same reason as above.
 | Symptom | Cause |
 | --- | --- |
 | Nothing offered, no error | Six-hour cache — press **Check for updates now** |
-| "No release could be read" | Token missing, expired, or lacking Contents: Read |
+| "No release could be read" | No release published yet, or the repo name is wrong |
 | Offered forever, never completes | Version headers do not match the tag |
 | Update installs but the site loses its theme | A source archive was attached instead of the built asset — check the Action ran |
 | Action fails on "Version headers do not match" | You tagged without bumping all three places |
 
-To confirm the token independently:
+To check what the site sees, from any machine:
 
 ```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-     https://api.github.com/repos/Cod3ghost/salanaz/releases/latest
+curl https://api.github.com/repos/Cod3ghost/salanaz/releases/latest
 ```
 
-A `200` with JSON means the site will work. A `404` means the token cannot see
-the repository.
+A `200` with JSON means the site will see it too. A `404` means no release has
+been published yet.
 
 ---
 
-## A note on keeping it private
+## A note on the repository being public
 
-A private repo is the right call here — this code contains your business logic,
-and the repository history will accumulate details about how payments are
-verified.
+Public is fine for this, and it makes updates simpler — no token, nothing to
+expire. But it means anyone can read the code, so one rule matters more than it
+otherwise would:
 
-Two things follow from it:
+**Never commit real keys.** Paystack secrets, SMTP passwords and bank details
+belong in `wp-config.php` or the Settings screen on the server, never in the
+repository. `.gitignore` already excludes `.env` files and the uploads directory
+where payment proofs and receipts are written.
 
-- **Never commit real keys.** Paystack secrets and the GitHub token belong in
-  `wp-config.php` on the server, not in the repository. `.gitignore` already
-  excludes `.env` files and the uploads directory.
-- **The site's token is a credential.** If you paste it into the Settings screen
-  it is stored in the database, so it will appear in database backups. The
-  `wp-config.php` route avoids that.
+Being public also means the payment logic is readable. That is not a weakness in
+itself — the security here does not depend on nobody seeing it. Paystack
+webhooks are rejected unless they carry a valid HMAC signature, every action
+re-checks its capability, and uploads are validated by content rather than by
+filename. Those hold whether or not the source is visible.
+
+If you would rather keep it closed, make it private and add the token described
+above — everything else works the same.
