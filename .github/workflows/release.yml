@@ -1,0 +1,96 @@
+name: Build release
+
+# Tagging a version builds the installable ZIPs and attaches them to the
+# release. The site's updater downloads those assets, so they must unpack to
+# `salanaz/` and `salanaz-estate/` — GitHub's own source archive unpacks to a
+# folder named after the repo and tag, which would rename the theme directory
+# and break the site.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version to build, e.g. v1.0.1'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Work out the version
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "number=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Check the tag matches the version headers
+        run: |
+          VERSION="${{ steps.version.outputs.number }}"
+
+          PLUGIN=$(grep -m1 -oP '^\s*\*\s*Version:\s*\K[0-9.]+' \
+            wp-content/plugins/salanaz-estate/salanaz-estate.php)
+          THEME=$(grep -m1 -oP '^Version:\s*\K[0-9.]+' \
+            wp-content/themes/salanaz/style.css)
+
+          echo "tag=${VERSION} plugin=${PLUGIN} theme=${THEME}"
+
+          # The updater compares the tag against these headers. If they drift,
+          # the site either never sees the update or offers it forever.
+          if [ "$PLUGIN" != "$VERSION" ] || [ "$THEME" != "$VERSION" ]; then
+            echo "::error::Version headers do not match the tag. Update both before tagging."
+            exit 1
+          fi
+
+      - name: Lint the PHP
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y php-cli >/dev/null 2>&1
+          FAILED=0
+          while IFS= read -r file; do
+            php -l "$file" >/dev/null || { echo "Syntax error in $file"; FAILED=1; }
+          done < <(find wp-content -name '*.php')
+          exit $FAILED
+
+      - name: Build the packages
+        run: |
+          mkdir -p dist build
+          cp -r wp-content/themes/salanaz build/salanaz
+          mkdir -p build/salanaz/bundled
+          cp -r wp-content/plugins/salanaz-estate build/salanaz/bundled/salanaz-estate
+          cp -r wp-content/plugins/salanaz-estate build/salanaz-estate
+          find build \( -name '.DS_Store' -o -name 'Thumbs.db' -o -name '*.log' \) -delete
+          cd build
+          zip -rq ../dist/salanaz-theme.zip salanaz
+          zip -rq ../dist/salanaz-estate.zip salanaz-estate
+
+      - name: Check the archives
+        run: |
+          # A single top-level folder, and the folder name the site expects.
+          unzip -l dist/salanaz-theme.zip | awk '{print $4}' | grep -oP '^[^/]+' | sort -u
+          unzip -Z1 dist/salanaz-theme.zip | grep -q '^salanaz/style.css$'
+          unzip -Z1 dist/salanaz-estate.zip | grep -q '^salanaz-estate/salanaz-estate.php$'
+          unzip -Z1 dist/salanaz-theme.zip | grep -q '^salanaz/bundled/salanaz-estate/salanaz-estate.php$'
+          echo "Archives look right."
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Salanaz ${{ steps.version.outputs.number }}
+          generate_release_notes: true
+          files: |
+            dist/salanaz-theme.zip
+            dist/salanaz-estate.zip

@@ -1,0 +1,14 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Local secrets — Paystack keys, SMTP credentials
+.env
+.env.local
+
+# Generated PDFs and payment proofs must never be committed
+wp-content/uploads/
+
+# Build output — releases are built by GitHub Actions
+dist/

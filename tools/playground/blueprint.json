@@ -1,0 +1,46 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/",
+  "preferredVersions": {
+    "php": "8.3",
+    "wp": "latest"
+  },
+  "login": true,
+  "steps": [
+    {
+      "step": "defineWpConfigConsts",
+      "consts": {
+        "WP_DEBUG": true,
+        "WP_DEBUG_LOG": true,
+        "WP_DEBUG_DISPLAY": true,
+        "SCRIPT_DEBUG": true,
+        "SALANAZ_DEV_MODE": true,
+        "SALANAZ_PRIVATE_DIR": "/wordpress/wp-content/salanaz-private-dev"
+      }
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "Salanaz Global Services Ltd",
+        "blogdescription": "Built on TRUST. Driven by EXCELLENCE.",
+        "timezone_string": "Africa/Lagos",
+        "date_format": "j F Y",
+        "time_format": "g:i a",
+        "permalink_structure": "/%postname%/",
+        "users_can_register": "1"
+      }
+    },
+    {
+      "step": "activatePlugin",
+      "pluginPath": "salanaz-estate/salanaz-estate.php"
+    },
+    {
+      "step": "activateTheme",
+      "themeFolderName": "salanaz"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; $r = Salanaz_Demo_Data::seed(); flush_rewrite_rules(); echo 'Seeded: ' . json_encode( $r );"
+    }
+  ]
+}

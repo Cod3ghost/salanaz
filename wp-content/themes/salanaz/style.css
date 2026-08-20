@@ -1,0 +1,16 @@
+/*
+Theme Name: Salanaz
+Theme URI: https://salanaz.com
+Author: Salanaz Global Services Ltd
+Description: Mobile-first WordPress theme for Salanaz Global Services Ltd. Presentation only — estates, plots, roles, payments and reporting live in the Salanaz Estate Management plugin.
+Version: 1.0.0
+Requires at least: 6.4
+Tested up to: 6.8
+Requires PHP: 8.0
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: salanaz
+Tags: real-estate, custom-menu, responsive-layout, translation-ready
+*/
+
+/* Styles live in assets/css/main.css — this file exists for theme metadata. */

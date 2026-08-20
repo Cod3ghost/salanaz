@@ -1,0 +1,13 @@
+{
+  "name": "salanaz-estate-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SALANAZ Global Services Ltd — WordPress theme + estate management plugin",
+  "scripts": {
+    "preview": "wp-playground-cli server --blueprint=./tools/playground/blueprint.json --mount=./wp-content/themes/salanaz:/wordpress/wp-content/themes/salanaz --mount=./wp-content/plugins/salanaz-estate:/wordpress/wp-content/plugins/salanaz-estate --port=9400",
+    "preview:debug": "wp-playground-cli server --blueprint=./tools/playground/blueprint.json --mount=./wp-content/themes/salanaz:/wordpress/wp-content/themes/salanaz --mount=./wp-content/plugins/salanaz-estate:/wordpress/wp-content/plugins/salanaz-estate --port=9400 --verbosity=debug"
+  },
+  "devDependencies": {
+    "@wp-playground/cli": "^3.1.48"
+  }
+}
