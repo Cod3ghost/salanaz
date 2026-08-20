@@ -12,3 +12,8 @@ wp-content/uploads/
 
 # Build output — releases are built by GitHub Actions
 dist/
+
+# Credentials reference — never commit this
+CREDENTIALS.txt
+credentials.txt
+*.credentials
