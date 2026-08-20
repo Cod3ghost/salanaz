@@ -930,7 +930,7 @@ class Salanaz_Admin {
 						<th scope="row"><label for="gh-repo"><?php esc_html_e( 'Repository', 'salanaz' ); ?></label></th>
 						<td>
 							<input type="text" id="gh-repo" name="github_repo" class="regular-text code"
-								value="<?php echo esc_attr( (string) get_option( 'salanaz_github_repo', '' ) ); ?>"
+								value="<?php echo esc_attr( Salanaz_Updater::repository() ); ?>"
 								placeholder="your-name/salanaz" />
 							<p class="description"><?php esc_html_e( 'In the form owner/repository. Leave empty to switch updates off.', 'salanaz' ); ?></p>
 						</td>
